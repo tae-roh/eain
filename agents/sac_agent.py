@@ -13,8 +13,10 @@ class SACAgent:
     def __init__(self, obs_dim, act_dim, act_limit, config):
         self.gamma = config['gamma']
         self.tau = config['tau']
-        self.alpha = config['alpha']
         self.device = torch.device(config['device'])
+        self.log_alpha = torch.tensor(np.log(config['alpha']), requires_grad=True, device=self.device)
+        self.alpha_optimizer = Adam([self.log_alpha], lr=config['alpha_lr'])
+        self.target_entropy = -act_dim
 
         self.actor = SquashedGaussianMLPActor(obs_dim, act_dim, act_limit, config['policy']).to(self.device)
         self.critic1 = MLPQFunction(obs_dim, act_dim).to(self.device)
@@ -44,12 +46,13 @@ class SACAgent:
             return
 
         obs, act, rew, next_obs, done = self.replay_buffer.sample_batch(batch_size)
+        alpha = self.log_alpha.exp()
 
         with torch.no_grad():
             next_action, next_log_prob = self.actor.sample(next_obs)
             target_q1 = self.target_critic1(next_obs, next_action)
             target_q2 = self.target_critic2(next_obs, next_action)
-            target_q = torch.min(target_q1, target_q2) - self.alpha * next_log_prob
+            target_q = torch.min(target_q1, target_q2) - alpha * next_log_prob
             backup = rew + self.gamma * (1 - done) * target_q
 
         # Update critics
@@ -71,11 +74,17 @@ class SACAgent:
         q1_pi = self.critic1(obs, new_act)
         q2_pi = self.critic2(obs, new_act)
         min_q_pi = torch.min(q1_pi, q2_pi)
-        actor_loss = (self.alpha * log_prob - min_q_pi).mean()
+        actor_loss = (alpha * log_prob - min_q_pi).mean()
 
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
+
+        # Update entropy coefficient
+        alpha_loss = -(self.log_alpha * (log_prob + self.target_entropy).detach()).mean()
+        self.alpha_optimizer.zero_grad()
+        alpha_loss.backward()
+        self.alpha_optimizer.step()
         
         # Update target critic networks
         soft_update(self.critic1, self.target_critic1, self.tau)
