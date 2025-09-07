@@ -1,7 +1,11 @@
 # EAIN: Element-wise Action Importance Estimation for Entropy Weighting in High-Dimensional Action Spaces
 
 ## Overview
-Reinforcement learning in high-dimensional action spaces often suffers from inefficient exploration, as all action dimensions are treated equally in entropy regularization. This indiscriminate treatment forces noisy or low-impact dimensions to contribute as much stochasticity as influential ones, leading to unnecessary randomness and unstable policy updates. This study introduces a method that estimates the relative importance of each action dimension and applies element-wise weighting specifically to the entropy term of the policy objective. An auxiliary network adaptively predicts dimension-wise importance, allowing exploration to be concentrated on reward-relevant dimensions while suppressing extraneous entropy from less important ones. Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that the proposed method reduces variance in evaluation returns, achieving up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction in the last 500k training steps compared to the baseline. These findings highlight the effectiveness of dimension-wise entropy weighting for stabilizing policy learning in complex, high-dimensional action spaces.
+Reinforcement learning in high-dimensional action spaces often suffers from inefficient exploration, as all action dimensions are treated equally in entropy regularization. This indiscriminate treatment forces noisy or low-impact dimensions to contribute as much stochasticity as influential ones, leading to unnecessary randomness and unstable policy updates. This study introduces a method that estimates the relative importance of each action dimension and applies element-wise weighting specifically to the entropy term of the policy objective. An auxiliary network adaptively predicts dimension-wise importance, allowing exploration to be concentrated on reward-relevant dimensions while suppressing extraneous entropy from less important ones.
+
+Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that the proposed method reduces variance in evaluation returns. With fixed α, the approach achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k training steps compared to the baseline SAC. With auto-tuned α, the method still yields notable improvements, reducing the overall standard deviation by 18% and the last-500k-steps deviation by 35%.
+
+These findings highlight the effectiveness of dimension-wise entropy weighting for stabilizing policy learning in complex, high-dimensional action spaces, under both fixed and auto-tuned entropy-temperature settings.
 
 ## Approach
 ### 1. Problem Formulation
@@ -89,21 +93,24 @@ $$
 This allows the EAI network to generalize noisy, local gradient signals into a smoother, state-dependent importance estimate.
 
 ## Experiments
-<img width="1600" height="400" alt="sac_seed7" src="https://github.com/user-attachments/assets/76493d78-ba26-4a21-8106-fb29e0d908a5" />
-<img width="1600" height="400" alt="eain_seed7" src="https://github.com/user-attachments/assets/708a5ab8-bef6-4fbc-ab3e-70a76cd4f348" />
+<img width="2267" height="1168" alt="image" src="https://github.com/user-attachments/assets/d67d12e7-de02-4b75-8a1d-8532aadb6bd2" />
 
-*Figure 1.* Learning curves on Humanoid-v5. SAC with EAIN achieves a 36% reduction in the overall standard deviation of evaluation returns across seeds, and a 37% reduction in the standard deviation computed over the final 500k environment steps, relative to the SAC baseline.
+
+*Figure 1.* Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.).  
+**(a) Fixed α**. SAC + EAIN lowers the cross-seed variability compared to SAC: overall average s.d. drops **36.0%** (from 824.4 to 527.6), and the last-500k-steps average s.d. drops **36.8%** (from 678.3 to 428.4), while achieving comparable final return (5242.1 ± 137.0 vs. 5361.6 ± 295.9).  
+**(b) Auto-tuned α**. SAC + EAIN again improves stability over auto-tuned SAC: overall average s.d. decreases **17.9%** (from 525.6 to 431.4) and the last-500k-steps average s.d. decreases **35.3%** (from 519.1 to 335.7), with a slightly higher final return (5165.1 ± 263.8 vs. 4933.2 ± 457.6).  
 
 ### Setup
-- **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space.
+- **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space
 - **Compared methods:**
-  - **SAC (baseline)** — standard entropy bonus.
-  - **SAC + EAI** — entropy term reweighted by state-dependent, per-dimension importance.
-- **Training steps:** 2M environment steps.
-- **Evaluation:** every 10k steps, 10 evaluation episodes (no exploration noise; mean action).
-- **Seeds:** 7 (report mean ± std across seeds).
+  - **SAC (baseline)** — standard entropy bonus
+  - **SAC + EAIN** — entropy term reweighted by state-dependent, per-dimension importance
+    - **α auto-tuning with adaptive target entropy**: because weighting changes the scale of the entropy term (typically $$\sum_i w_i < d, \ d: action \ dim$$), the target entropy is slowly adapted to this scale to avoid alpha miscalibration.
+- **Training steps:** 2M environment steps
+- **Evaluation:** every 10k steps, 10 evaluation episodes (no exploration noise; mean action)
+- **Seeds:** 7 (report mean ± std across seeds)
 
 ### Metrics
-- **Return (mean ± std)** over seeds.  
-- **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500k** steps.
+- **Return (mean ± std)** over seeds
+- **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500k** steps
 
