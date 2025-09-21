@@ -8,17 +8,24 @@ Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that the p
 These findings highlight the effectiveness of dimension-wise entropy weighting for stabilizing policy learning in complex, high-dimensional action spaces, under both fixed and auto-tuned entropy-temperature settings.
 
 ## Approach
+<p align="center">
+<img width="700" height="1109" alt="image" src="https://github.com/user-attachments/assets/0d3b2543-6920-4a50-ac75-bfb8e0b541a5" />
+</p>
+<p align="center">
+<i>Overview of SAC with EAIN</i>
+</p>
+
 ### 1. Problem Formulation
 Soft Actor-Critic (SAC) optimizes a stochastic policy $\pi_\theta(a \mid s)$ with entropy regularization:
 
 $$
-J(\pi_\theta) = 𝔼_{(s,a)\sim D} \ [Q_\psi(s,a) - \alpha \ \log \ \pi_\theta(a \mid s)],
+J(\pi_\theta) = 𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha \ \log \ \pi_\theta(a \mid s)],
 $$
 
 where
 - $\pi_\theta$: policy with parameters $\theta$,
 - $Q_\psi$: critic with parameters $\psi$,
-- $\alpha$: enropy temperature coefficient.
+- $\alpha$: entropy temperature coefficient.
 
 The entropy term can be decomposed as:
 
@@ -35,7 +42,7 @@ To address this, a dimension-wise importance vector $w \in \mathbb{R}^d$ is intr
 The modified policy objective becomes:
 
 $$
-J(\pi_\theta) = 𝔼_{(s,a)\sim D} \ [Q_\psi(s,a) - \alpha  \sum_{i=1}^d  w_i(s) \ \log \ \pi_\theta(a_i \mid s)].
+J(\pi_\theta) = 𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha  \sum_{i=1}^d  w_i(s) \ \log \ \pi_\theta(a_i \mid s)].
 $$
 
 Here $w_i(s)$ adaptively scales the entropy contribution of each action dimension.
@@ -46,7 +53,7 @@ Here $w_i(s)$ adaptively scales the entropy contribution of each action dimensio
 The importance weights are predicted by an auxiliary network:
 
 $$
-w = f_\phi(s), \quad w \in \mathbb{R}^d,
+\mathbf{w} = f_\phi(s), \quad \mathbf{w} \in \mathbb{R}^d,
 $$
 
 where
@@ -61,7 +68,7 @@ where
 The actor is optimized using the entropy-weighted objective:
 
 $$
-L_\pi(\theta;\phi) = -𝔼_{(s,a)\sim D} \ [Q_\psi(s,a) - \alpha \sum_{i=1}^d w_i(s) \ \log \ \pi_\theta(a_i \mid s)], \quad w(s) = f_\phi(s).
+L_\pi(\theta;\phi) = -𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha \sum_{i=1}^d w_i(s) \ \log \ \pi_\theta(a_i \mid s)], \quad w(s) = f_\phi(s).
 $$
 
 - The EAI network output $f_\phi(s)$ modulates entropy.
@@ -94,11 +101,13 @@ This allows the EAI network to generalize noisy, local gradient signals into a s
 
 ## Experiments
 <img width="2267" height="1168" alt="image" src="https://github.com/user-attachments/assets/d67d12e7-de02-4b75-8a1d-8532aadb6bd2" />
+<p align="center">
+<i>Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.)</i>
+</p>
 
-
-*Figure 1.* Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.).  
-**(a) Fixed α**. SAC + EAIN lowers the cross-seed variability compared to SAC: overall average s.d. drops **36.0%** (from 824.4 to 527.6), and the last-500k-steps average s.d. drops **36.8%** (from 678.3 to 428.4), while achieving comparable final return (5242.1 ± 137.0 vs. 5361.6 ± 295.9).  
-**(b) Auto-tuned α**. SAC + EAIN again improves stability over auto-tuned SAC: overall average s.d. decreases **17.9%** (from 525.6 to 431.4) and the last-500k-steps average s.d. decreases **35.3%** (from 519.1 to 335.7), with a slightly higher final return (5165.1 ± 263.8 vs. 4933.2 ± 457.6).  
+### Results
+- **Fixed α (a)**: SAC + EAIN lowers the cross-seed variability compared to SAC. Overall average s.d. drops **36.0%** (from 824.4 to 527.6), and the last-500k-steps average s.d. drops **36.8%** (from 678.3 to 428.4), while achieving comparable final return (5242.1 ± 137.0 vs. 5361.6 ± 295.9).
+- **Auto-tuned α (b)**: SAC + EAIN again improves stability over auto-tuned SAC. Overall average s.d. decreases **17.9%** (from 525.6 to 431.4) and the last-500k-steps average s.d. decreases **35.3%** (from 519.1 to 335.7), with a slightly higher final return (5165.1 ± 263.8 vs. 4933.2 ± 457.6).  
 
 ### Setup
 - **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space
