@@ -1,11 +1,19 @@
 # EAIN: Element-wise Action Importance Estimation for Entropy Weighting in High-Dimensional Action Spaces
+**Keywords**: Reinforcement Learning, Maximum Entropy RL, Exploration, Reproducibility<br><br>
+
+## Motivation
+Entropy regularization is typically applied with a single temperature (α), without explicit per-dimension weighting, even though not all action dimensions contribute equally at every state.
+
+Consider a 6-DoF robot arm: at the start of a grasping task, excessive exploration of distal joints near the end effector can be unnecessary or even harmful, while base joints may matter more for reachability. As dimensionality increases, this inefficiency becomes more pronounced.
+
+These observations motivate an approach that allocates exploration based on the state-dependent importance of each action dimension, instead of applying entropy regularization uniformly across all dimensions.
 
 ## Overview
 Reinforcement learning in high-dimensional action spaces often suffers from inefficient exploration, as all action dimensions are treated equally in entropy regularization. This indiscriminate treatment forces noisy or low-impact dimensions to contribute as much stochasticity as influential ones, leading to unnecessary randomness and unstable policy updates. This study introduces a method that estimates the relative importance of each action dimension and applies element-wise weighting specifically to the entropy term of the policy objective. An auxiliary network adaptively predicts dimension-wise importance, allowing exploration to be concentrated on reward-relevant dimensions while suppressing extraneous entropy from less important ones.
 
 Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that the proposed method reduces variance in evaluation returns. With fixed α, the approach achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k training steps compared to the baseline SAC. With auto-tuned α, the method still yields notable improvements, reducing the overall standard deviation by 18% and the last-500k-steps deviation by 35%.
 
-These findings highlight the effectiveness of dimension-wise entropy weighting for stabilizing policy learning in complex, high-dimensional action spaces, under both fixed and auto-tuned entropy-temperature settings.
+These findings highlight the effectiveness of dimension-wise entropy weighting in stabilizing policy learning in complex, high-dimensional action spaces, under both fixed and auto-tuned entropy-temperature settings, thereby improving the reproducibility of training outcomes.
 
 ## Approach
 <p align="center">
