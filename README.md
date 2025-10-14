@@ -2,9 +2,16 @@
 **Keywords**: Reinforcement Learning, Maximum Entropy RL, Exploration, Reproducibility<br><br>
 
 ## Motivation
-Entropy regularization is typically applied with a single temperature (α), without explicit per-dimension weighting, even though not all action dimensions contribute equally at every state.
+The importance of each action dimension can vary depending on the current state. Excessive exploration in action dimensions that are less important at a given state can be inefficient and unnecessary.
 
-Consider a 6-DoF robot arm: at the start of a grasping task, excessive exploration of distal joints near the end effector can be unnecessary or even harmful, while base joints may matter more for reachability. As dimensionality increases, this inefficiency becomes more pronounced.
+<p align="center">
+<img width="2141" height="721" alt="image" src="https://github.com/user-attachments/assets/ad7f5e27-b7e7-41e0-a4e9-42bddfe078cf" />
+</p>
+<p align="center">
+<i>Varying Joint Importance Across States</i>
+</p>
+
+Consider a 6-DoF robot arm with a gripper. At the start of a grasping task, excessive exploration of wrist and gripper joints can be unnecessary or even harmful, while base joints may matter more for reachability. As the dimensionality increases, this inefficiency becomes more pronounced.
 
 These observations motivate an approach that allocates exploration based on the state-dependent importance of each action dimension, instead of applying entropy regularization uniformly across all dimensions.
 
@@ -105,7 +112,7 @@ $$
 L_{EAI}(\phi) = 𝔼_{s \sim D} \left| \left| f_\phi(s) - \hat{w}(s) \right| \right| ^2
 $$
 
-This allows the EAI network to generalize noisy, local gradient signals into a smoother, state-dependent importance estimate.
+Through this loss, the EAI network learns a state-dependent approximation of a proxy signal to estimate the importance of each action dimension for entropy weighting.
 
 ## Experiments
 <img width="2267" height="1168" alt="image" src="https://github.com/user-attachments/assets/d67d12e7-de02-4b75-8a1d-8532aadb6bd2" />
