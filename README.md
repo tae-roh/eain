@@ -5,7 +5,7 @@
 The importance of each action dimension can vary depending on the current state. Excessive exploration in action dimensions that are less important at a given state can be inefficient and unnecessary.
 
 <p align="center">
-<img width="2141" height="721" alt="image" src="https://github.com/user-attachments/assets/ad7f5e27-b7e7-41e0-a4e9-42bddfe078cf" />
+<img width="2559" height="817" alt="image" src="https://github.com/user-attachments/assets/aa353e3a-eff4-4c7a-a85a-73f869247995" />
 </p>
 <p align="center">
 <i>Varying Joint Importance Across States</i>
@@ -24,7 +24,7 @@ These findings highlight the effectiveness of dimension-wise entropy weighting i
 
 ## Approach
 <p align="center">
-<img width="700" height="1109" alt="image" src="https://github.com/user-attachments/assets/0d3b2543-6920-4a50-ac75-bfb8e0b541a5" />
+<img width="2254" height="1131" alt="image" src="https://github.com/user-attachments/assets/9e85a5f2-1540-4105-b9e5-7ddac7255f45" />
 </p>
 <p align="center">
 <i>Overview of SAC with EAIN</i>
