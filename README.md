@@ -1,7 +1,7 @@
 # EAIN: Element-wise Action Importance Estimation for Entropy Weighting in High-Dimensional Action Spaces
 **Keywords**: Reinforcement Learning, Maximum Entropy RL, Exploration, Reproducibility<br><br>
 
-## Motivation
+## Motivation (Why I Built This)
 The importance of each action dimension can vary depending on the current state. Excessive exploration in action dimensions that are less important at a given state can be inefficient and unnecessary.
 
 <p align="center">
@@ -11,7 +11,7 @@ The importance of each action dimension can vary depending on the current state.
 <i>Varying Joint Importance Across States</i>
 </p>
 
-Consider a 6-DoF robot arm with a gripper. At the start of a grasping task, excessive exploration of wrist and gripper joints can be unnecessary or even harmful, while base joints may matter more for reachability. As the dimensionality increases, this inefficiency becomes more pronounced.
+Consider a 6-DoF robot arm with a gripper. At the start of a grasping task — when the gripper is distant from the object — excessive exploration of wrist and gripper joints can be unnecessary or even harmful, while base joints may matter more for reachability. As the dimensionality increases, this inefficiency becomes more pronounced.
 
 These observations motivate an approach that allocates exploration based on the state-dependent importance of each action dimension, instead of applying entropy regularization uniformly across all dimensions.
 
@@ -24,7 +24,7 @@ These findings highlight the effectiveness of dimension-wise entropy weighting i
 
 ## Approach
 <p align="center">
-<img width="2254" height="1131" alt="image" src="https://github.com/user-attachments/assets/9e85a5f2-1540-4105-b9e5-7ddac7255f45" />
+<img width="2166" height="1142" alt="image" src="https://github.com/user-attachments/assets/90262577-5530-43da-b29b-a4aee56ddb03" />
 </p>
 <p align="center">
 <i>Overview of SAC with EAIN</i>
@@ -53,14 +53,14 @@ This uniform treatment forces noisy or low-impact dimensions to contribute equal
 ---
 
 ### 2. Dimension-wise Entropy Weighting
-To address this, a dimension-wise importance vector $w \in \mathbb{R}^d$ is introduced.
+To address this, a dimension-wise importance vector $\hat{w} \in \mathbb{R}^d$ is introduced.
 The modified policy objective becomes:
 
 $$
-J(\pi_\theta) = 𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha  \sum_{i=1}^d  w_i(s) \ \log \ \pi_\theta(a_i \mid s)].
+J(\pi_\theta) = 𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha  \sum_{i=1}^d  \hat{w}_i(s) \ \log \ \pi_\theta(a_i \mid s)].
 $$
 
-Here $w_i(s)$ adaptively scales the entropy contribution of each action dimension.
+Here $\hat{w}_i(s)$ adaptively scales the entropy contribution of each action dimension.
 
 ---
 
@@ -68,7 +68,7 @@ Here $w_i(s)$ adaptively scales the entropy contribution of each action dimensio
 The importance weights are predicted by an auxiliary network:
 
 $$
-\mathbf{w} = f_\phi(s), \quad \mathbf{w} \in \mathbb{R}^d,
+\mathbf{\hat{w}} = f_\phi(s), \quad \mathbf{\hat{w}} \in \mathbb{R}^d,
 $$
 
 where
@@ -83,7 +83,7 @@ where
 The actor is optimized using the entropy-weighted objective:
 
 $$
-L_\pi(\theta;\phi) = -𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha \sum_{i=1}^d w_i(s) \ \log \ \pi_\theta(a_i \mid s)], \quad w(s) = f_\phi(s).
+L_\pi(\theta;\phi) = -𝔼_{s\sim D, a\sim\pi_\theta(⋅ \mid s)} \ [Q_\psi(s,a) - \alpha \sum_{i=1}^d \hat{w}_i(s) \ \log \ \pi_\theta(a_i \mid s)], \quad \hat{w}(s) = f_\phi(s).
 $$
 
 - The EAI network output $f_\phi(s)$ modulates entropy.
@@ -98,10 +98,10 @@ $$
 
 #### (c) EAI Loss
 The EAI network is trained with a regression objective against a proxy importance signal 
-$\hat{w}(s)$, often derived from the action-gradient of the Q-function:
+$w(s)$, derived from the action-gradient of the Q-function:
 
 $$
-\hat{w_i}(s) \propto \left|{\frac{\partial Q_\psi(s,a)}{\partial a_i}}\right|,
+w_i(s) \propto \left|{\frac{\partial Q_\psi(s,a)}{\partial a_i}}\right|,
 $$
 
 scaled across dimensions.
@@ -109,7 +109,7 @@ scaled across dimensions.
 The EAI loss is then:
 
 $$
-L_{EAI}(\phi) = 𝔼_{s \sim D} \left| \left| f_\phi(s) - \hat{w}(s) \right| \right| ^2
+L_{EAI}(\phi) = 𝔼_{s \sim D} \left| \left| f_\phi(s) - w(s) \right| \right| ^2
 $$
 
 Through this loss, the EAI network learns a state-dependent approximation of a proxy signal to estimate the importance of each action dimension for entropy weighting.
