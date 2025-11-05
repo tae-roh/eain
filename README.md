@@ -1,11 +1,11 @@
-# EAIN: Element-wise Action Importance Estimation for Entropy Weighting in High-Dimensional Action Spaces
+# EAIN: Element-wise Action Importance Estimation for Adaptive Exploration in High-Dimensional Action Spaces
 **Keywords**: Reinforcement Learning, Maximum Entropy RL, Exploration, Reproducibility<br><br>
 
 ## Motivation (Why I Built This)
 The importance of each action dimension can vary depending on the current state. Excessive exploration in action dimensions that are less important at a given state can be inefficient and unnecessary.
 
 <p align="center">
-<img width="2559" height="817" alt="image" src="https://github.com/user-attachments/assets/aa353e3a-eff4-4c7a-a85a-73f869247995" />
+<img width="2553" height="845" alt="image" src="https://github.com/user-attachments/assets/5c87f0d9-bc55-4129-8b07-c7e7b0dc1a1b" />
 </p>
 <p align="center">
 <i>Varying Joint Importance Across States</i>
@@ -115,14 +115,27 @@ $$
 Through this loss, the EAI network learns a state-dependent approximation of a proxy signal to estimate the importance of each action dimension for entropy weighting.
 
 ## Experiments
-<img width="2267" height="1168" alt="image" src="https://github.com/user-attachments/assets/d67d12e7-de02-4b75-8a1d-8532aadb6bd2" />
+
+<img width="2379" height="1135" alt="image" src="https://github.com/user-attachments/assets/dbd9f4f6-9a36-4055-9677-b77e10cda8f0" />
 <p align="center">
-<i>Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.)</i>
+<i>Result 1: Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.)</i>
 </p>
 
-### Results
-- **Fixed α (a)**: SAC + EAIN lowers the cross-seed variability compared to SAC. Overall average s.d. drops **36.0%** (from 824.4 to 527.6), and the last-500k-steps average s.d. drops **36.8%** (from 678.3 to 428.4), while achieving comparable final return (5242.1 ± 137.0 vs. 5361.6 ± 295.9).
-- **Auto-tuned α (b)**: SAC + EAIN again improves stability over auto-tuned SAC. Overall average s.d. decreases **17.9%** (from 525.6 to 431.4) and the last-500k-steps average s.d. decreases **35.3%** (from 519.1 to 335.7), with a slightly higher final return (5165.1 ± 263.8 vs. 4933.2 ± 457.6).  
+### Result 1 (2M; 7 seeds) 
+  - **Fixed α (a)**: SAC + EAIN lowers the cross-seed variability compared to SAC. Overall average s.d. drops **36.0%** (from 824.4 to 527.6), and the last-500K-steps average s.d. drops **36.8%** (from 678.3 to 428.4), while achieving comparable final return (5242.1 ± 137.0 vs. 5361.6 ± 295.9).
+  - **Auto-tuned α (b)**: SAC + EAIN again improves stability over auto-tuned SAC. Overall average s.d. decreases **17.9%** (from 525.6 to 431.4) and the last-500K-steps average s.d. decreases **35.3%** (from 519.1 to 335.7), with a slightly higher final return (5165.1 ± 263.8 vs. 4933.2 ± 457.6).
+  <br><br>
+  
+<img width="2558" height="984" alt="image" src="https://github.com/user-attachments/assets/8ae32bbe-546e-4b77-9fb0-128c0e99cea3" />
+<br>
+<p align="center">
+<i>Result 2: Learning curves on Humanoid-v5 over 5M environment interactions (5 seeds; mean ±1 s.d.; auto-tuned α)</i>
+</p>
+
+### Result 2 (5M; 5 seeds; auto-tuned α)
+  - **Final return (mean ± s.d.)**: SAC 5774.3 ± 467.2 vs. EAIN 5410.4 ± 128.0 ($${\color{red}\text{-6.3\\% mean}}$$, $${\color{green}\text{-72.6\\% s.d.}}$$)
+  - **Last 1M steps s.d.**: 508.2 → 253.7 ($${\color{green}\text{-50.1\\%}}$$)
+  - **Overall avg s.d. (whole training)**: 503.0 → 365.2 ($${\color{green}\text{-27.4\\%}}$$)
 
 ### Setup
 - **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space
@@ -130,11 +143,10 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
   - **SAC (baseline)** — standard entropy bonus
   - **SAC + EAIN** — entropy term reweighted by state-dependent, per-dimension importance
     - **α auto-tuning with adaptive target entropy**: because weighting changes the scale of the entropy term (typically $$\sum_i w_i < d, \ d: action \ dim$$), the target entropy is slowly adapted to this scale to avoid alpha miscalibration.
-- **Training steps:** 2M environment steps
-- **Evaluation:** every 10k steps, 10 evaluation episodes (no exploration noise; mean action)
-- **Seeds:** 7 (report mean ± std across seeds)
+- **Training steps:** 2/5M environment steps
+- **Evaluation:** every 10K steps, 10 evaluation episodes (no exploration noise; mean action)
 
 ### Metrics
 - **Return (mean ± std)** over seeds
-- **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500k** steps
+- **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500K/1M** steps
 
