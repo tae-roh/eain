@@ -7,6 +7,7 @@ from torch.optim import Adam
 from networks.actor import SquashedGaussianMLPActor
 from networks.critic import MLPQFunction
 from networks.eain import EAINet
+from networks.rnd import RND
 from replay_buffer.replay_buffer import ReplayBuffer
 from utils.torch_utils import soft_update
 
@@ -20,6 +21,7 @@ class SACAgentEAIN:
         self.alpha_optimizer = Adam([self.log_alpha], lr=config['alpha_lr'])
         self.target_entropy = -act_dim
         self.beta = config['beta']
+        self.rnd_enabled = config['rnd']
 
         self.actor = SquashedGaussianMLPActor(obs_dim, act_dim, act_limit, config['policy']).to(self.device)
         self.critic1 = MLPQFunction(obs_dim, act_dim).to(self.device)
@@ -38,6 +40,12 @@ class SACAgentEAIN:
         self.eai_net_optimizer = Adam(self.eai_net.parameters(), lr=config['eain_lr'])
 
         self.replay_buffer = ReplayBuffer(obs_dim, act_dim, config['replay_size'], self.device)
+
+        # RND for uncertainty estimation
+        if self.rnd_enabled:
+            self.eta = config['eta']
+            self.rnd = RND(obs_dim).to(self.device)
+            self.rnd_optimizer = Adam(self.rnd.predictor.parameters(), lr=config['rnd_lr'])
 
     def select_action(self, obs, eval_mode=False):
         obs_tensor = torch.as_tensor(obs, dtype=torch.float32).to(self.device)
@@ -109,13 +117,26 @@ class SACAgentEAIN:
         q1_pi_eai = self.critic1(obs, new_act_eai)
         q2_pi_eai = self.critic2(obs, new_act_eai)
         min_q_pi_eai = torch.min(q1_pi_eai, q2_pi_eai)
-        true_importance = self.compute_importance(min_q_pi_eai, new_act_eai)
+
+        if self.rnd_enabled:
+            w = self.compute_importance(min_q_pi_eai, new_act_eai)
+            uncertainty = self.rnd(obs).detach()
+            w_signal = self.eta + (1 - self.eta) * ((1 - uncertainty) * w + uncertainty * 1.0)
+        else:
+            w_signal = self.compute_importance(min_q_pi_eai, new_act_eai)
 
         importance_eai = self.eai_net(obs)
-        eai_loss = F.mse_loss(importance_eai, true_importance)
+        eai_loss = F.mse_loss(importance_eai, w_signal)
         self.eai_net_optimizer.zero_grad()
         eai_loss.backward()
         self.eai_net_optimizer.step()
+        
+        # Update RND predictor
+        if self.rnd_enabled:
+            rnd_loss = self.rnd.loss(obs)
+            self.rnd_optimizer.zero_grad()
+            rnd_loss.backward()
+            self.rnd_optimizer.step()
 
     def store_transition(self, obs, act, rew, next_obs, done):
         self.replay_buffer.store(obs, act, rew, next_obs, done)

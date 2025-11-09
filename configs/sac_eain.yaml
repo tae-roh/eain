@@ -11,12 +11,15 @@ alpha_lr: 0.0003
 actor_lr: 0.0003
 critic_lr: 0.0003
 eain_lr: 0.0003
+rnd_lr: 0.0003
 beta: 0.005
+eta: 0.05
 target_update_interval: 1
 start_steps: 10000
 update_after: 1000
 update_every: 50
 max_episode_steps: 1000
 replay_size: 1000000
+rnd: True
 policy: SAC_EAIN
 device: cuda
