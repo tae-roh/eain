@@ -16,11 +16,13 @@ Consider a 6-DoF robot arm with a gripper. At the start of a grasping task — w
 These observations motivate an approach that allocates exploration based on the state-dependent importance of each action dimension, instead of applying entropy regularization uniformly across all dimensions.
 
 ## Overview
-Reinforcement learning in high-dimensional action spaces often suffers from inefficient exploration, as all action dimensions are treated equally in entropy regularization. This indiscriminate treatment forces noisy or low-impact dimensions to contribute as much stochasticity as influential ones, leading to unnecessary randomness and unstable policy updates. This study introduces a method that estimates the relative importance of each action dimension and applies element-wise weighting specifically to the entropy term of the policy objective. An auxiliary network adaptively predicts dimension-wise importance, allowing exploration to be concentrated on reward-relevant dimensions while suppressing extraneous entropy from less important ones.
+Exploration in high-dimensional reinforcement learning is fundamentally challenging, as the agent must navigate a complex action space. Although maximum entropy RL mitigates some of these difficulties by providing a principled mechanism for encouraging broad and consistent exploration, it can still cause misaligned or overly diffuse exploration behaviors in complex control tasks, sometimes leading to unstable policy updates and suboptimal learning dynamics (Han & Sung, 2021; Zhang et al., 2025). This study argues that such instability arises because standard entropy regularization treats all action dimensions identically, injecting unnecessary randomness into dimensions that do not contribute meaningfully to policy improvement.
 
-Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that the proposed method reduces variance in evaluation returns. With fixed α, the approach achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k training steps compared to the baseline SAC. With auto-tuned α, the method still yields notable improvements, reducing the overall standard deviation by 18% and the last-500k-steps deviation by 35%.
+To address this, this study introduces an auxiliary **E**lement-wise **A**ction **I**mportance **N**etwork (**EAIN**) that estimates the state-dependent importance of each action dimension. These importance values are used to apply dimension-wise weighting exclusively to the entropy term of the policy objective, allowing  adaptive exploration to focus on reward-relevant dimensions while suppressing extraneous entropy from less influential ones.
 
-These findings highlight the effectiveness of dimension-wise entropy weighting in stabilizing policy learning in complex, high-dimensional action spaces, under both fixed and auto-tuned entropy-temperature settings, thereby improving the reproducibility of training outcomes.
+Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that this method significantly reduces variance in evaluation returns. With fixed α, it achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k steps compared to baseline SAC. With auto-tuned α, the method similarly yields notable improvements, reducing overall variance by 18% and last-500k variance by 35%. A longer 5M-step experiment under auto-tuned α shows consistent behavior: although the final mean return is slightly lower (−6.3%), the evaluation standard deviation is reduced by 72.6%, and both the last 1M-step variance (−50.1%) and overall variance across the entire training (−27.4%) are decreased.
+
+These findings highlight the effectiveness of dimension-wise entropy weighting in stabilizing policy learning in complex, high-dimensional action spaces, ultimately improving the reproducibility of maximum entropy RL training outcomes.
 
 ## Approach
 <p align="center">
@@ -93,7 +95,19 @@ $$
 The critics are updated as in SAC, using the Bellman error:
 
 $$
-L_Q(\psi) = \big(Q_\psi(s,a) - (r + \gamma \hat{Q}(s\prime, a\prime))\big)^2.
+y(r, s', a') 
+= r + \gamma\mathbb{E}_{a' \sim \pi(\cdot \mid s')}
+\left[
+Q_{\bar{\psi}}(s', a') - \alpha \log \pi(a' \mid s')
+\right],
+$$
+
+$$
+L_{Q}(\psi) =
+\mathbb{E}_{(s,a,r,s')\sim D}
+\left[
+\left( Q_{\psi}(s, a) - y(r, s', a') \right)^2
+\right]
 $$
 
 #### (c) EAI Loss
