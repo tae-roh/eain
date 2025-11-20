@@ -21,6 +21,8 @@ class SACAgentEAIN:
         self.target_entropy = -act_dim
         self.beta = config['beta']
 
+        self.act_dim = act_dim
+
         self.actor = SquashedGaussianMLPActor(obs_dim, act_dim, act_limit, config['policy']).to(self.device)
         self.critic1 = MLPQFunction(obs_dim, act_dim).to(self.device)
         self.critic2 = MLPQFunction(obs_dim, act_dim).to(self.device)
@@ -38,7 +40,7 @@ class SACAgentEAIN:
         self.eai_net_optimizer = Adam(self.eai_net.parameters(), lr=config['eain_lr'])
 
         self.replay_buffer = ReplayBuffer(obs_dim, act_dim, config['replay_size'], self.device)
-
+        
     def select_action(self, obs, eval_mode=False):
         obs_tensor = torch.as_tensor(obs, dtype=torch.float32).to(self.device)
         with torch.no_grad():
@@ -98,7 +100,7 @@ class SACAgentEAIN:
         self.alpha_optimizer.step()
 
         # Update target entropy adaptively
-        self.target_entropy = (1- self.beta) * self.target_entropy + self.beta * (-importance).sum(dim=-1).mean().item()
+        # self.target_entropy = (1- self.beta) * self.target_entropy + self.beta * (-importance).sum(dim=-1).mean().item()
 
         # Update target critics
         soft_update(self.critic1, self.target_critic1, self.tau)
@@ -130,9 +132,8 @@ class SACAgentEAIN:
             retain_graph=False,
         )[0]
         
-        importance = grads.abs()
+        x = grads.abs()
+        x /= x.sum(dim=-1, keepdim=True)
+        importance = self.act_dim * x
         
-        importance_max = importance.max(dim=-1, keepdim=True)[0] + 1e-8
-        scaled_importance = importance / importance_max
-        
-        return scaled_importance
+        return importance
