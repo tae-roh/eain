@@ -133,7 +133,7 @@ class SACAgentEAIN:
         )[0]
         
         x = grads.abs()
-        x /= x.sum(dim=-1, keepdim=True)
+        x /= (x.sum(dim=-1, keepdim=True) + 1e-8)
         importance = self.act_dim * x
         
         return importance

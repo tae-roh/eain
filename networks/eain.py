@@ -18,7 +18,7 @@ class EAINet(nn.Module):
     def forward(self, obs):
         net_out = self.eai_net(obs)
         x = F.softplus(net_out) + 1e-6
-        x /= x.sum(dim=-1, keepdim=True)
+        x /= (x.sum(dim=-1, keepdim=True).detach() + 1e-8)
         importance = self.act_dim * x
         return importance
     
