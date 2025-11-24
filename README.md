@@ -1,7 +1,7 @@
 # EAIN: Element-wise Action Importance Estimation for Adaptive Exploration in High-Dimensional Action Spaces
 **Keywords**: Reinforcement Learning, Maximum Entropy RL, Exploration, Reproducibility<br><br>
 
-## Motivation (Why I Built This)
+## 💡Motivation (Why I Built This)
 The importance of each action dimension can vary depending on the current state. Excessive exploration in action dimensions that are less important at a given state can be inefficient and unnecessary.
 
 <p align="center">
@@ -15,16 +15,20 @@ Consider a 6-DoF robot arm with a gripper. At the start of a grasping task — w
 
 These observations motivate an approach that allocates exploration based on the state-dependent importance of each action dimension, instead of applying entropy regularization uniformly across all dimensions.
 
-## Overview
-Exploration in high-dimensional reinforcement learning is fundamentally challenging, as the agent must navigate a complex action space. Although maximum entropy RL mitigates some of these difficulties by providing a principled mechanism for encouraging broad and consistent exploration, it can still cause misaligned or overly diffuse exploration behaviors in complex control tasks, sometimes leading to unstable policy updates and suboptimal learning dynamics (Han & Sung, 2021; Zhang et al., 2025). This study argues that such instability arises because standard entropy regularization treats all action dimensions identically, injecting unnecessary randomness into dimensions that do not contribute meaningfully to policy improvement.
+<br>
+
+## 🤖Overview
+Exploration in high-dimensional reinforcement learning is fundamentally challenging, as the agent must navigate a complex action space. Although maximum entropy RL mitigates some of these difficulties by providing a principled mechanism for encouraging broad and consistent exploration, it can still cause misaligned or overly diffuse exploration behaviors in complex control tasks, sometimes leading to unstable policy updates and suboptimal learning dynamics (Zhang et al., [2025](https://arxiv.org/abs/2506.05615)). This study argues that such instability arises because standard entropy regularization treats all action dimensions identically, injecting unnecessary randomness into dimensions that do not contribute meaningfully to policy improvement.
 
 To address this, this study introduces an auxiliary **E**lement-wise **A**ction **I**mportance **N**etwork (**EAIN**) that estimates the state-dependent importance of each action dimension. These importance values are used to apply dimension-wise weighting exclusively to the entropy term of the policy objective, allowing  adaptive exploration to focus on reward-relevant dimensions while suppressing extraneous entropy from less influential ones.
 
-Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that this method significantly reduces variance in evaluation returns. With fixed α, it achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k steps compared to baseline SAC. With auto-tuned α, the method similarly yields notable improvements, reducing overall variance by 18% and last-500k variance by 35%. A longer 5M-step experiment under auto-tuned α shows consistent behavior: although the final mean return is slightly lower (−6.3%), the evaluation standard deviation is reduced by 72.6%, and both the last 1M-step variance (−50.1%) and overall variance across the entire training (−27.4%) are decreased.
+Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that this method significantly reduces variance in evaluation returns. In 2M-step experiments, with fixed α, it achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k steps compared to baseline SAC. Under the same 2M-step setting, with auto-tuned α, the method similarly yields notable improvements, reducing overall variance by 18% and last-500k variance by 35%. A longer 5M-step experiment conducted with 5 seeds under auto-tuned α shows consistent behavior: although the final mean return is slightly lower (−6.3%), the evaluation standard deviation is reduced by 72.6%, and both the last 1M-step variance (−50.1%) and overall variance across the entire training (−27.4%) are decreased.
 
 These findings highlight the effectiveness of dimension-wise entropy weighting in stabilizing policy learning in complex, high-dimensional action spaces, ultimately improving the reproducibility of maximum entropy RL training outcomes.
 
-## Approach
+<br>
+
+## 🔎Approach
 <p align="center">
 <img width="2166" height="1142" alt="image" src="https://github.com/user-attachments/assets/90262577-5530-43da-b29b-a4aee56ddb03" />
 </p>
@@ -128,29 +132,66 @@ $$
 
 Through this loss, the EAI network learns a state-dependent approximation of a proxy signal to estimate the importance of each action dimension for entropy weighting.
 
-## Experiments
+<br>
 
-<img width="2379" height="1135" alt="image" src="https://github.com/user-attachments/assets/dbd9f4f6-9a36-4055-9677-b77e10cda8f0" />
-<p align="center">
-<i>Result 1: Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.)</i>
-</p>
+## 📉Experiments
 
 ### Result 1 (2M; 7 seeds) 
-  - **Fixed α (a)**: SAC + EAIN lowers the cross-seed variability compared to SAC. Overall average s.d. drops **36.0%** (from 824.4 to 527.6), and the last-500K-steps average s.d. drops **36.8%** (from 678.3 to 428.4), while achieving comparable final return (5242.1 ± 137.0 vs. 5361.6 ± 295.9).
-  - **Auto-tuned α (b)**: SAC + EAIN again improves stability over auto-tuned SAC. Overall average s.d. decreases **17.9%** (from 525.6 to 431.4) and the last-500K-steps average s.d. decreases **35.3%** (from 519.1 to 335.7), with a slightly higher final return (5165.1 ± 263.8 vs. 4933.2 ± 457.6).
-  <br><br>
+<img width="2379" height="1135" alt="image" src="https://github.com/user-attachments/assets/dbd9f4f6-9a36-4055-9677-b77e10cda8f0" />
+<p align="center">
+<i>Learning Curves for Result 1: Learning curves on Humanoid-v5 over 2M environment interactions (7 seeds; mean ±1 s.d.)</i>
+</p>
+
+<br>
+
+<div align="center">
+
+| **Fixed α** | Final return (mean ± s.d.) | Last 500K steps s.d. | Overall avg s.d. |
+|:------------------:|:---------------:|:-----------:|:------------------:|
+| SAC (Baseline) | 5361.6 ± 295.9 | 678.3 | 824.4 |
+| SAC + **EAIN** | 5242.1 ($${\color{red}\text{-2.2\\%}}$$) ± 137.0 ($${\color{green}\text{-53.7\\%}}$$) | 428.4 ($${\color{green}\text{-36.8\\%}}$$) | 527.6 ($${\color{green}\text{-36.0\\%}}$$) |
+
+| **Auto-tuned α** | Final return (mean ± s.d.) | Last 500K steps s.d. | Overall avg s.d. |
+|:----------------:|:-------------:|:---------:|:----------------:|
+| SAC (Baseline) | 4933.2 ± 457.6 | 519.1 | 525.6 |
+| SAC + **EAIN** | 5165.1 ($${\color{green}\text{+4.7\\%}}$$) ± 263.8 ($${\color{green}\text{-42.3\\%}}$$) | 335.7 ($${\color{green}\text{-35.3\\%}}$$) | 431.4 ($${\color{green}\text{-17.9\\%}}$$) |
+
+</div>
+
+<p align="center">
+<i>Table for Result 1</i>
+</p>
+
+✅**Analysis**: Across both the Fixed α and Auto-tuned α settings, applying EAIN consistently reduces seed-to-seed variance, leading to improved reproducibility. The method not only lowers the overall evaluation standard deviation but also stabilizes performance in the later stages of training, demonstrating more reliable learning dynamics across runs.
+
+---
   
+### Result 2 (5M; 5 seeds; auto-tuned α)
+
 <img width="2558" height="984" alt="image" src="https://github.com/user-attachments/assets/8ae32bbe-546e-4b77-9fb0-128c0e99cea3" />
 <br>
 <p align="center">
-<i>Result 2: Learning curves on Humanoid-v5 over 5M environment interactions (5 seeds; mean ±1 s.d.; auto-tuned α)</i>
+<i>Learning Curves for Result 2: Learning curves on Humanoid-v5 over 5M environment interactions (5 seeds; mean ±1 s.d.; auto-tuned α)</i>
 </p>
 
-### Result 2 (5M; 5 seeds; auto-tuned α)
-  - **Final return (mean ± s.d.)**: SAC 5774.3 ± 467.2 vs. EAIN 5410.4 ± 128.0 ($${\color{red}\text{-6.3\\% mean}}$$, $${\color{green}\text{-72.6\\% s.d.}}$$)
-  - **Last 1M steps s.d.**: 508.2 → 253.7 ($${\color{green}\text{-50.1\\%}}$$)
-  - **Overall avg s.d. (whole training)**: 503.0 → 365.2 ($${\color{green}\text{-27.4\\%}}$$)
+<br>
 
+<div align="center">
+
+| **Auto-tuned α** | Final return (mean ± s.d.) | Last 1M steps s.d. | Overall avg s.d. |
+|:------------------:|:---------------:|:-----------:|:------------------:|
+| SAC (Baseline) | 5774.3 ± 467.2 | 508.2 | 503.0 |
+| SAC + **EAIN** | 5410.4 ($${\color{red}\text{-6.3\\%}}$$) ± 128.0 ($${\color{green}\text{-72.6\\%}}$$) | 253.7 ($${\color{green}\text{-50.1\\%}}$$) | 365.2 ($${\color{green}\text{-27.4\\%}}$$) |
+
+</div>
+
+<p align="center">
+<i>Table for Result 2</i>
+</p>
+
+✅**Analysis**: In the 5M-step experiment with auto-tuned α, EAIN once again reduces variance throughout training, with the effect becoming especially pronounced toward the later stages. As training progresses, the variance reduction becomes more apparent, and the learning curve exhibits a more stable and reliable convergence behavior compared to baseline SAC.
+
+---
 ### Setup
 - **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space
 - **Compared methods:**
@@ -160,7 +201,7 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 - **Training steps:** 2/5M environment steps
 - **Evaluation:** every 10K steps, 10 evaluation episodes (no exploration noise; mean action)
 
-### Metrics
-- **Return (mean ± std)** over seeds
-- **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500K/1M** steps
+- **Metrics**
+  - **Return (mean ± std)** over seeds
+  - **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500K/1M** steps
 
