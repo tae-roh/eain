@@ -13,7 +13,7 @@ The importance of each action dimension can vary depending on the current state.
 
 Consider a 6-DoF robot arm with a gripper. At the start of a grasping task — when the gripper is distant from the object — excessive exploration of wrist and gripper joints can be unnecessary or even harmful, while base joints may matter more for reachability. As the dimensionality increases, this inefficiency becomes more pronounced.
 
-These observations motivate an approach that allocates exploration based on the state-dependent importance of each action dimension, instead of applying entropy regularization uniformly across all dimensions.
+These observations motivate an approach that allocates exploration according to the state-dependent importance of each action dimension, rather than applying uniform exploration across all dimensions.
 
 <br>
 
@@ -22,7 +22,7 @@ Exploration in high-dimensional reinforcement learning is fundamentally challeng
 
 To address this, this study introduces an auxiliary **E**lement-wise **A**ction **I**mportance **N**etwork (**EAIN**) that estimates the state-dependent importance of each action dimension. These importance values are used to apply dimension-wise weighting exclusively to the entropy term of the policy objective, allowing  adaptive exploration to focus on reward-relevant dimensions while suppressing extraneous entropy from less influential ones.
 
-Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that this method significantly reduces variance in evaluation returns. In 2M-step experiments, with fixed α, it achieves up to a 36% reduction in mean standard deviation across 7 seeds and a 37% reduction over the last 500k steps compared to baseline SAC. Under the same 2M-step setting, with auto-tuned α, the method similarly yields notable improvements, reducing overall variance by 18% and last-500k variance by 35%. A longer 5M-step experiment conducted with 5 seeds under auto-tuned α shows consistent behavior: although the final mean return is slightly lower (−6.3%), the evaluation standard deviation is reduced by 72.6%, and both the last 1M-step variance (−50.1%) and overall variance across the entire training (−27.4%) are decreased.
+Experiments on the high-dimensional Humanoid-v5 benchmark demonstrate that this method significantly reduces variance in evaluation returns. In 2M-step experiments, with fixed α, it achieves up to a 36% reduction in average standard deviation across 7 seeds and a 37% reduction over the last 500k steps compared to baseline SAC. With auto-tuned α, the method similarly yields notable improvements, reducing overall standard deviation by 18% and last-500k standard deviation by 35%. A longer 5M-step experiment with 5 seeds under auto-tuned α shows consistent variance-reduction effects: the overall standard deviation across training decreases by 27.4%, and the last-1M-step standard deviation decreases by 50.1%.
 
 These findings highlight the effectiveness of dimension-wise entropy weighting in stabilizing policy learning in complex, high-dimensional action spaces, ultimately improving the reproducibility of maximum entropy RL training outcomes.
 
