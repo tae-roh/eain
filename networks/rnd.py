@@ -37,20 +37,18 @@ class RND(nn.Module):
         self.u_min = u_min
         self.u_max = u_max
   
-
-    def forward(self, obs):
-        with torch.no_grad():
-            target_feature = self.target(obs)
+    @torch.no_grad()
+    def get_uncertainty(self, obs):
+        target_feature = self.target(obs)
         predict_feature = self.predictor(obs)
 
         e = F.mse_loss(predict_feature, target_feature, reduction='none').mean(dim=-1, keepdim=True)
 
-        with torch.no_grad():
-            self._update_rnd_ema(e.detach())
-            std = torch.sqrt(self.rnd_var + self.eps)
-            z = (e - self.rnd_mean) / (std + self.eps)
-            uncertainty = torch.sigmoid(self.gate_k * (z - self.gate_b))
-            uncertainty = torch.clamp(uncertainty, self.u_min, self.u_max)
+        self._update_rnd_ema(e.detach())
+        std = torch.sqrt(self.rnd_var + self.eps)
+        z = (e - self.rnd_mean) / (std + self.eps)
+        uncertainty = torch.sigmoid(self.gate_k * (z - self.gate_b))
+        uncertainty = torch.clamp(uncertainty, self.u_min, self.u_max)
 
         return uncertainty
     

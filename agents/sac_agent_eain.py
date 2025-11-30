@@ -120,7 +120,7 @@ class SACAgentEAIN:
 
         if self.rnd_enabled:
             w = self.compute_importance(min_q_pi_eai, new_act_eai)
-            uncertainty = self.rnd(obs).detach()
+            uncertainty = self.rnd.get_uncertainty(obs).detach()
             w_signal = self.eta + (1 - self.eta) * ((1 - uncertainty) * w + uncertainty * 1.0)
         else:
             w_signal = self.compute_importance(min_q_pi_eai, new_act_eai)
