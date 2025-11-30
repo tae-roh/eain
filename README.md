@@ -194,14 +194,28 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 ---
 ### Setup
 - **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space
-- **Compared methods:**
+- **Compared Methods**
   - **SAC (baseline)** — standard entropy bonus
   - **SAC + EAIN** — entropy term reweighted by state-dependent, per-dimension importance
     - **α auto-tuning with adaptive target entropy**: because weighting changes the scale of the entropy term (typically $$\sum_i w_i < d, \ d: action \ dim$$), the target entropy is slowly adapted to this scale to avoid alpha miscalibration.
-- **Training steps:** 2/5M environment steps
+- **Training Steps:** 2/5M environment steps
 - **Evaluation:** every 10K steps, 10 evaluation episodes (no exploration noise; mean action)
 
 - **Metrics**
   - **Return (mean ± std)** over seeds
   - **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500K/1M** steps
+
+<br>
+
+## 🤔What Can We Try Next?
+- **Handling Early-Phase Uncertainty:** During early training, the Q-function is still inaccurate, making its action-gradient signal (∂Q/∂a) noisy and unreliable. Because EAIN uses this gradient to estimate per-dimension importance, early predictions can fluctuate and momentarily distort entropy weighting.
+  
+  - **Learning signal with RND bonus** — Applying Random Network Distillation (Burda et al., [2018](https://arxiv.org/abs/1810.12894)) adds an uncertainty bonus to the learning signal based on state visitation frequency. In early training, this encourages the per-dimension learning signal to take on a more uniform structure across action dimensions. [Branch](https://github.com/tae-roh/eain/tree/rnd)
+  - **Pretrained EAIN as prior**
+ 
+- **Boosting Importance-Based Weighting:** This approach not only restricts exploration in less important dimensions but also encourages greater exploration in those deemed more important.
+
+  - **Bold EAIN** — Instead of scaling importance values to the 0–1 range, this strategy distributes weights so that the sum of per-dimension importances equals the action dimensionality, preserving relative importance while maintaining a fixed total exploration budget. [Branch](https://github.com/tae-roh/eain/tree/bold)
+
+- **Designing More Stable Learning Signals**
 
