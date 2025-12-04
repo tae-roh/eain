@@ -208,7 +208,7 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 
 <br>
 
-## 📊Overall Summary: Stable & Consistent Learning with Adaptive Exploration
+## 📊Overall Summary: Stable Learning with Adaptive Exploration
 
 Across both the 2M-step and 5M-step experiments, EAIN demonstrates a clear and consistent advantage in stabilizing policy learning without sacrificing performance. Despite applying selective suppression of entropy in less influential action dimensions, **mean returns remain comparable to those of standard SAC**, indicating that the method avoids harmful under-exploration.
 
