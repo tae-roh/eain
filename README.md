@@ -192,6 +192,7 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 ✅**Analysis**: In the 5M-step experiment with auto-tuned α, EAIN once again reduces variance throughout training, with the effect becoming especially pronounced toward the later stages. As training progresses, the variance reduction becomes more apparent, and the learning curve exhibits a more stable and reliable convergence behavior compared to baseline SAC.
 
 ---
+
 ### Setup
 - **Environment:** Humanoid-v5 (Gymnasium / MuJoCo), continuous high-dimensional action space
 - **Compared Methods**
@@ -204,6 +205,16 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 - **Metrics**
   - **Return (mean ± std)** over seeds
   - **Variance/stability:** (i) overall std of evaluation return, (ii) std over the **last 500K/1M** steps
+
+<br>
+
+## 📊Overall Summary: Stable & Consistent Learning with Adaptive Exploration
+
+Across both the 2M-step and 5M-step experiments, EAIN demonstrates a clear and consistent advantage in stabilizing policy learning without sacrificing performance. Despite applying selective suppression of entropy in less influential action dimensions, **mean returns remain comparable to those of standard SAC**, indicating that the method avoids harmful under-exploration.
+
+Importantly, **early-stage convergence speed is preserved**, showing that adaptive entropy reduction does not slow down initial learning. As training progresses, the strengths of EAIN become increasingly apparent: **evaluation variance drops substantially**, and the learning curves exhibit **markedly more stable late-stage behavior**. This suggests that dimension-wise exploration control helps prevent the excessive, misaligned randomness that normally accumulates in high-dimensional action spaces.
+
+Overall, these results show that EAIN effectively reduces variance while maintaining return levels and convergence speed, ultimately delivering a more stable and reproducible training process for maximum entropy RL in high-dimensional continuous-control tasks.
 
 <br>
 
