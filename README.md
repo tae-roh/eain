@@ -1,7 +1,7 @@
 # EAIN: Element-wise Action Importance Estimation for Adaptive Exploration in High-Dimensional Action Spaces
 **Keywords**: Reinforcement Learning, Maximum Entropy RL, Exploration, Reproducibility<br><br>
 
-## 💡Motivation (Why I Built This)
+## 💡Motivation
 The importance of each action dimension can vary depending on the current state. Excessive exploration in action dimensions that are less important at a given state can be inefficient and unnecessary.
 
 <p align="center">
@@ -146,15 +146,15 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 
 <div align="center">
 
-| **Fixed α** | Final return (mean ± s.d.) | Last 500K steps s.d. | Overall avg s.d. |
+| **Fixed α** | Final return (mean ± s.d.) | Overall avg s.d. | Last 500K steps s.d. |
 |:------------------:|:---------------:|:-----------:|:------------------:|
-| SAC (Baseline) | 5361.6 ± 295.9 | 678.3 | 824.4 |
-| SAC + **EAIN** | 5242.1 ($${\color{red}\text{-2.2\\%}}$$) ± 137.0 ($${\color{green}\text{-53.7\\%}}$$) | 428.4 ($${\color{green}\text{-36.8\\%}}$$) | 527.6 ($${\color{green}\text{-36.0\\%}}$$) |
+| SAC (Baseline) | 5361.6 ± 295.9 |  824.4 | 678.3 |
+| SAC + **EAIN** | 5242.1 ($${\color{red}\text{-2.2\\%}}$$) ± 137.0 ($${\color{green}\text{-53.7\\%}}$$) | 527.6 ($${\color{green}\text{-36.0\\%}}$$) | 428.4 ($${\color{green}\text{-36.8\\%}}$$) |
 
-| **Auto-tuned α** | Final return (mean ± s.d.) | Last 500K steps s.d. | Overall avg s.d. |
+| **Auto-tuned α** | Final return (mean ± s.d.) | Overall avg s.d. | Last 500K steps s.d. |
 |:----------------:|:-------------:|:---------:|:----------------:|
-| SAC (Baseline) | 4933.2 ± 457.6 | 519.1 | 525.6 |
-| SAC + **EAIN** | 5165.1 ($${\color{green}\text{+4.7\\%}}$$) ± 263.8 ($${\color{green}\text{-42.3\\%}}$$) | 335.7 ($${\color{green}\text{-35.3\\%}}$$) | 431.4 ($${\color{green}\text{-17.9\\%}}$$) |
+| SAC (Baseline) | 4933.2 ± 457.6 | 525.6 | 519.1 |
+| SAC + **EAIN** | 5165.1 ($${\color{green}\text{+4.7\\%}}$$) ± 263.8 ($${\color{green}\text{-42.3\\%}}$$) | 431.4 ($${\color{green}\text{-17.9\\%}}$$) | 335.7 ($${\color{green}\text{-35.3\\%}}$$) |
 
 </div>
 
@@ -178,10 +178,10 @@ Through this loss, the EAI network learns a state-dependent approximation of a p
 
 <div align="center">
 
-| **Auto-tuned α** | Final return (mean ± s.d.) | Last 1M steps s.d. | Overall avg s.d. |
+| **Auto-tuned α** | Final return (mean ± s.d.) | Overall avg s.d. | Last 1M steps s.d. |
 |:------------------:|:---------------:|:-----------:|:------------------:|
-| SAC (Baseline) | 5774.3 ± 467.2 | 508.2 | 503.0 |
-| SAC + **EAIN** | 5410.4 ($${\color{red}\text{-6.3\\%}}$$) ± 128.0 ($${\color{green}\text{-72.6\\%}}$$) | 253.7 ($${\color{green}\text{-50.1\\%}}$$) | 365.2 ($${\color{green}\text{-27.4\\%}}$$) |
+| SAC (Baseline) | 5774.3 ± 467.2 | 503.0 | 508.2 |
+| SAC + **EAIN** | 5410.4 ($${\color{red}\text{-6.3\\%}}$$) ± 128.0 ($${\color{green}\text{-72.6\\%}}$$) | 365.2 ($${\color{green}\text{-27.4\\%}}$$) | 253.7 ($${\color{green}\text{-50.1\\%}}$$) |
 
 </div>
 
@@ -214,7 +214,7 @@ Across both the 2M-step and 5M-step experiments, EAIN demonstrates a clear and c
 
 Importantly, **early-stage convergence speed is preserved**, showing that adaptive entropy reduction does not slow down initial learning. As training progresses, the strengths of EAIN become increasingly apparent: **evaluation variance drops substantially**, and the learning curves exhibit **markedly more stable late-stage behavior**. This suggests that dimension-wise exploration control helps prevent the excessive, misaligned randomness that normally accumulates in high-dimensional action spaces.
 
-Overall, these results show that EAIN effectively reduces variance while maintaining return levels and convergence speed, ultimately delivering a more stable and reproducible training process for maximum entropy RL in high-dimensional continuous-control tasks.
+Overall, these results show that **EAIN effectively reduces variance while maintaining return levels and convergence speed**, ultimately delivering a more stable and reproducible training process for maximum entropy RL in high-dimensional continuous-control tasks.
 
 <br>
 
